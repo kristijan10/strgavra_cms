@@ -7,12 +7,14 @@ import Dashboard from "./pages/Dashboard";
 import SubDashboard from "./pages/SubDashboard";
 import Analytics from "./pages/Analytics";
 import Profil from "./pages/Profil";
+import Navigacija from "./pages/Navigacija";
 
 const componentMap = {
   Dashboard,
   SubDashboard,
   Analytics,
   Profil,
+  Navigacija,
 };
 
 const routes = [
@@ -20,6 +22,11 @@ const routes = [
     title: "Dashboard",
     type: "link",
     link: "/",
+  },
+  {
+    title: "Navigacija",
+    type: "link",
+    link: "/navigacija",
   },
   {
     title: "Reports",

@@ -10,6 +10,7 @@ import aboutRouter from "./router/about.js";
 import productsRouter from "./router/products.js";
 import categoriesRouter from "./router/categories.js";
 import contactRouter from "./router/contact.js";
+import mediaRouter from "./router/media.js";
 
 const app = express();
 
@@ -30,6 +31,8 @@ app.use("/products", productsRouter);
 app.use("/categories", categoriesRouter);
 
 app.use("/contact", contactRouter);
+
+app.use("/media", mediaRouter);
 
 app.use(error);
 
