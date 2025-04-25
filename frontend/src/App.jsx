@@ -1,28 +1,57 @@
-import { Link, Outlet, Route, Routes } from "react-router";
+import { createElement } from "react";
+import { Outlet, Route, Routes } from "react-router";
 import Header from "./components/Header";
+import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import SubDashboard from "./pages/SubDashboard";
+import Analytics from "./pages/Analytics";
+import Profil from "./pages/Profil";
+
+const componentMap = {
+  Dashboard,
+  SubDashboard,
+  Analytics,
+  Profil,
+};
 
 const routes = [
   {
     title: "Dashboard",
+    type: "link",
     link: "/",
   },
   {
     title: "Reports",
+    type: "submenu",
     subMenu: [
-      { title: "Sub-Dashboard", link: "/sub-dashboard" },
-      { title: "Analytics", link: "/analytics" },
+      {
+        title: "Sub-Dashboard",
+        type: "link",
+        link: "/sub-dashboard",
+      },
+      { title: "Analytics", type: "link", link: "/analytics" },
     ],
   },
   {
+    title: "Profil",
+    type: "link",
+    link: "/profile",
+  },
+  {
     title: "Odjava",
-    link: "/logout",
+    type: "button",
+    action: "logout",
   },
 ];
 
-const Layout = () => {
+const toCamelCase = (str) => str.replace(/-./g, (m) => m[1].toUpperCase());
+
+const Layout = ({ menuItems }) => {
   return (
     <div className="md:flex min-h-screen">
-      <Header menuItems={routes} />
+      <Header menuItems={menuItems} />
+
       <main className="md:flex-1">
         <Outlet />
       </main>
@@ -30,42 +59,40 @@ const Layout = () => {
   );
 };
 
-// TODO: Dodati stranice Not Found i Login
-
 function App() {
   return (
     <Routes>
-      <Route element={<Layout />}>
-        {routes.map((route, index) =>
-          route.link ? (
-            <Route
-              key={index}
-              path={route.link}
-              element={<p>{route.title}</p>}
-            />
-          ) : (
-            route.subMenu.map((subRoute, subIndex) => (
-              <Route
-                key={`${index}-${subIndex}`}
-                path={subRoute.link}
-                element={<p>{subRoute.title}</p>}
-              />
-            ))
+      <Route path="/login" element={<Login />} />
+
+      <Route element={<Layout menuItems={routes} />}>
+        {routes
+          .flatMap((route, i) =>
+            route.type === "link"
+              ? [{ ...route, key: i }]
+              : route.type === "submenu"
+              ? route.subMenu.map((sub, j) => ({ ...sub, key: `${i}-${j}` }))
+              : []
           )
-        )}
+          .map(({ title, link, key }) => {
+            const component = componentMap[toCamelCase(title)];
+
+            return (
+              <Route
+                key={key}
+                path={link}
+                element={
+                  component ? (
+                    createElement(component)
+                  ) : (
+                    <p>Komponenta {toCamelCase(title)} ne postoji</p>
+                  )
+                }
+              />
+            );
+          })}
       </Route>
 
-      <Route path="/login" element={<p>Login</p>} />
-
-      <Route
-        path="*"
-        element={
-          <>
-            <p>Not found</p>
-            <Link to="/">Home</Link>
-          </>
-        }
-      />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

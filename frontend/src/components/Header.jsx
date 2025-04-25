@@ -1,20 +1,40 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import { useAuth } from "../context/authContext.js";
 
 const MenuItem = ({ item, closeMenu }) => {
   const [subMenuOpen, setSubMenuOpen] = useState(false);
+  const { logout } = useAuth();
+
+  const actionMap = {
+    logout,
+  };
+
+  const handleClick = () => {
+    if (item.action && actionMap[item.action]) actionMap[item.action]();
+    closeMenu(); // Zatvori meni u svakom slučaju
+  };
 
   return (
     <li className="pt-2.5">
-      {item.link ? (
+      {item.type === "link" && (
         <Link
           to={item.link}
-          onClick={closeMenu}
+          onClick={handleClick}
           className="hover:text-gray-200"
         >
           {item.title}
         </Link>
-      ) : (
+      )}
+      {item.type === "button" && (
+        <button
+          onClick={handleClick}
+          className="hover:text-gray-200 cursor-pointer"
+        >
+          {item.title}
+        </button>
+      )}
+      {item.type === "submenu" && (
         <div
           className="cursor-pointer hover:text-gray-200"
           onClick={() => setSubMenuOpen(!subMenuOpen)}
@@ -47,8 +67,12 @@ const MenuItem = ({ item, closeMenu }) => {
           }`}
         >
           {item.subMenu.map((subItem, index) => (
-            <li key={index} className="pt-2.5" onClick={closeMenu}>
-              <Link to={subItem.link} className="hover:text-gray-200">
+            <li key={index} className="pt-2.5">
+              <Link
+                to={subItem.link}
+                onClick={handleClick}
+                className="hover:text-gray-200"
+              >
                 {subItem.title}
               </Link>
             </li>
