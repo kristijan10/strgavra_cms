@@ -46,10 +46,9 @@ const uploadToCDN = async (file) => {
 
   const data = await response.json();
   return data.secure_url;
-  // podaci.find(d=>d.type==="image").url = response;
 };
 
-// Mock function to simulate saving text and links to DB
+// TODO: Mock function to simulate saving text and links to DB
 
 const Navigacija = () => {
   const [links, setLinks] = useState(
@@ -69,6 +68,7 @@ const Navigacija = () => {
       try {
         const cdnUrl = await uploadToCDN(file);
         setImageUrl(cdnUrl);
+        // update image url in db
         logoInputRef.current.value = "";
       } catch (error) {
         console.log("Greska pri cuvanju slike na CDN: ", error);
@@ -97,7 +97,7 @@ const Navigacija = () => {
     console.log(changedLinks);
   };
 
-  // Handle save button click
+  //TODO: Handle save button click
 
   return (
     <div className="p-5">
@@ -146,6 +146,7 @@ const Navigacija = () => {
             </div>
           </div>
         ))}
+        // TODO: dodati komponentu za dodavanje naknadnih linkova
         <button
           // onClick={handleSave}
           className="border-1 cursor-pointer px-1.5 py-1 mt-2"

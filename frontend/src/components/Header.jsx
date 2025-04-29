@@ -125,7 +125,7 @@ const Header = ({ menuItems }) => {
 
       <nav
         className={`fixed bg-blue-500 text-white w-64 p-4 pr-0 transition-all duration-300 z-50 top-0 h-screen
-          md:static
+          md:static md:h-full
           ${open ? "left-0" : "-left-64"}`}
       >
         <ul>

@@ -8,6 +8,7 @@ import SubDashboard from "./pages/SubDashboard";
 import Analytics from "./pages/Analytics";
 import Profil from "./pages/Profil";
 import Navigacija from "./pages/Navigacija";
+import Ponuda from "./pages/Ponuda";
 
 const componentMap = {
   Dashboard,
@@ -15,6 +16,7 @@ const componentMap = {
   Analytics,
   Profil,
   Navigacija,
+  Ponuda,
 };
 
 const routes = [
@@ -28,22 +30,27 @@ const routes = [
     type: "link",
     link: "/navigacija",
   },
+  // {
+  //   title: "Reports",
+  //   type: "submenu",
+  //   subMenu: [
+  //     {
+  //       title: "Sub-Dashboard",
+  //       type: "link",
+  //       link: "/sub-dashboard",
+  //     },
+  //     { title: "Analytics", type: "link", link: "/analytics" },
+  //   ],
+  // },
+  // {
+  //   title: "Profil",
+  //   type: "link",
+  //   link: "/profile",
+  // },
   {
-    title: "Reports",
-    type: "submenu",
-    subMenu: [
-      {
-        title: "Sub-Dashboard",
-        type: "link",
-        link: "/sub-dashboard",
-      },
-      { title: "Analytics", type: "link", link: "/analytics" },
-    ],
-  },
-  {
-    title: "Profil",
+    title: "Ponuda",
     type: "link",
-    link: "/profile",
+    link: "/ponuda",
   },
   {
     title: "Odjava",
