@@ -4,11 +4,11 @@ import throwError from "../utils/throwError.js";
 import errorMessages from "../utils/errorMessages.js";
 import multer from "multer";
 import path from "path";
+import uploadAndOptimizeImage from "../utils/uploadAndOptimizeImage.js";
 
-// Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Adjust the path to your desired directory
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
@@ -34,20 +34,67 @@ router.put("/:id", upload.single("image"), async (req, res, next) => {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id < 0) throwError(errorMessages.BAD_REQUEST);
 
-    const { content, name = null } = req.body; // Extract content from formData
-    const imagePath = req.file ? req.file.path : null; // Get file path if uploaded
+    const { content = null, name = null, visible = null } = req.body;
+    let image_url = null;
 
-    const sql = `UPDATE categories SET content = ? 
-    ${imagePath ? ", image_url = ?" : ""} ${name ? ", name = ?" : ""}
-     WHERE id = ?`;
-    const values = [content];
-    if (imagePath) values.push(imagePath);
-    if (name) values.push(name);
+    if (req.file) {
+      const { secure_url } = await uploadAndOptimizeImage(req.file);
+      image_url = secure_url;
+    }
+
+    let sql = `UPDATE categories SET`;
+    const updates = [];
+    const values = [];
+
+    if (content !== null) {
+      updates.push(`content = ?`);
+      values.push(content);
+    }
+    if (image_url !== null) {
+      updates.push(`image_url = ?`);
+      values.push(image_url);
+    }
+    if (name !== null) {
+      updates.push(`name = ?`);
+      values.push(name);
+    }
+    if (visible !== null) {
+      updates.push(`visible = ?`);
+      values.push(visible === "1" ? 1 : 0);
+    }
+
+    if (updates.length === 0) {
+      sql += ` content = NULL, name = NULL, image_url = NULL, visible = 1`;
+    } else {
+      sql += ` ${updates.join(", ")}`;
+    }
+
+    sql += ` WHERE id = ?`;
     values.push(id);
 
     await pool.execute(sql, values);
 
     res.send({ message: "Uspesno izmenjeno" });
+  } catch (error) {
+    console.log("Greska!");
+    next(error);
+  }
+});
+
+router.delete("/:id", async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id < 0) throwError(errorMessages.BAD_REQUEST);
+
+    const [result] = await pool.execute(`DELETE FROM categories WHERE id = ?`, [
+      id,
+    ]);
+
+    if (result.affectedRows === 0) {
+      throwError("Kategorija nije pronadjena");
+    }
+
+    res.send({ message: "Kategorija uspesno obrisana" });
   } catch (error) {
     console.log("Greska!");
     next(error);

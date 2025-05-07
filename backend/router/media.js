@@ -6,7 +6,7 @@ import errorMessages from "../utils/errorMessages.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
-import sharp from "sharp";
+import uploadAndOptimizeImage from "../utils/uploadAndOptimizeImage.js";
 
 const router = express.Router();
 
@@ -40,17 +40,7 @@ router.use("/uploads", express.static(uploadDir));
 router.post("/", upload.single("image"), async (req, res, next) => {
   let localPath;
   try {
-    if (!req.file) throwError(errorMessages.BAD_REQUEST);
-
-    const optimizedImage = await sharp(req.file.buffer)
-      .resize({
-        width: 1200,
-        height: 1200,
-        fit: "inside",
-        withoutEnlargement: true,
-      })
-      .webp({ quality: 80 })
-      .toBuffer();
+    const { secure_url, public_id } = uploadAndOptimizeImage(req.file);
 
     const filename = `image-${Date.now()}-${Math.random()
       .toString(36)
@@ -60,39 +50,16 @@ router.post("/", upload.single("image"), async (req, res, next) => {
     // cuva lokalno
     // await fs.writeFile(path.join(process.cwd(), localPath), optimizedImage);
 
-    cloudinary.uploader
-      .upload_stream(
-        {
-          public_id: undefined,
-          resource_type: "image",
-          folder: "navigation_images",
-          format: "webp",
-        },
-        async (error, result) => {
-          if (error)
-            throw new Object.assign(
-              new Error("Cloudinary upload fail: ", error.message),
-              { status: error.http_code }
-            );
+    const alt_text = "strgavra logo, vatra";
 
-          const alt_text = "strgavra logo, vatra";
+    const sql = `INSERT INTO images(url, public_id, local_path, alt_text) VALUES(?, ?, ?, ?)`;
+    await pool.execute(sql, [secure_url, public_id, localPath, alt_text]);
 
-          const sql = `INSERT INTO images(url, public_id, local_path, alt_text) VALUES(?, ?, ?, ?)`;
-          await pool.execute(sql, [
-            result.secure_url,
-            result.public_id,
-            localPath,
-            alt_text,
-          ]);
-
-          res.send({
-            secure_url: result.secure_url,
-            local_path: localPath,
-            alt_text,
-          });
-        }
-      )
-      .end(optimizedImage);
+    res.send({
+      secure_url,
+      local_path: localPath,
+      alt_text,
+    });
   } catch (error) {
     if (localPath)
       await fs.unlink(path.join(process.cwd(), localPath)).catch(() => {});
